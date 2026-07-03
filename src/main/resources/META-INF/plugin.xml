@@ -1,19 +1,32 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <id>com.github.sandogeek.batchcherrypickplugin</id>
-    <name>BatchCherryPick-plugin</name>
+    <name>Batch Cherry-Pick</name>
     <vendor>sandogeek</vendor>
     <description><![CDATA[
-        <p><b>BatchCherryPick-plugin</b> is a repository that provides a pure template to make it easier to create a new plugin project.</p>
-        <p>The main goal of this template is to speed up the setup phase of plugin development for both new and experienced developers by preconfiguring the project scaffold and CI, linking to the proper documentation pages, and keeping everything organized.</p>
+        <p><b>Batch Cherry-Pick</b> lets you cherry-pick one or more commits selected in the Git Log
+        onto multiple target branches in a single operation.</p>
+        <ul>
+            <li>Select commits in the Git Log, then right-click &rarr; <b>Batch Cherry-Pick to Branches...</b></li>
+            <li>Choose the target branches and execution options (pull, push, dirty worktree, conflict strategy).</li>
+            <li>Commits are applied in topological order to each branch; the original branch is restored afterwards.</li>
+        </ul>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>Git4Idea</depends>
 
-    <resource-bundle>messages.MyBundle</resource-bundle>
+    <resource-bundle>messages.BatchCherryPickBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.sandogeek.batchcherrypickplugin.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
-        <postStartupActivity implementation="com.github.sandogeek.batchcherrypickplugin.startup.MyProjectActivity" />
+        <notificationGroup id="BatchCherryPick.Notifications" displayType="BALLOON"/>
     </extensions>
+
+    <actions>
+        <action id="BatchCherryPickAction"
+                class="com.github.sandogeek.batchcherrypickplugin.action.BatchCherryPickAction"
+                icon="AllIcons.Vcs.Merge">
+            <add-to-group group-id="Vcs.Log.ContextMenu" anchor="after" relative-to-action="Git.CherryPick"/>
+        </action>
+    </actions>
 </idea-plugin>

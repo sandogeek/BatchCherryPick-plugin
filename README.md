@@ -1,45 +1,42 @@
-# BatchCherryPick-plugin
+# Batch Cherry-Pick
 
 ![Build](https://github.com/sandogeek/BatchCherryPick-plugin/workflows/Build/badge.svg)
-[![Version](https://img.shields.io/jetbrains/plugin/v/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
-[![Downloads](https://img.shields.io/jetbrains/plugin/d/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
 
-## Template ToDo list
-- [x] Create a new [IntelliJ Platform Plugin Template][template] project.
-- [ ] Get familiar with the [template documentation][template].
-- [ ] Adjust the [group](./gradle.properties), as well as the [id](./src/main/resources/META-INF/plugin.xml), [name](./src/main/resources/META-INF/plugin.xml), and [sources package](./src/main/kotlin).
-- [ ] Adjust the plugin [description](./src/main/resources/META-INF/plugin.xml) (see [Tips][docs:plugin-description]) and this README to describe what your plugin does.
-- [ ] Review the [Legal Agreements](https://plugins.jetbrains.com/docs/marketplace/legal-agreements.html?from=IJPluginTemplate).
-- [ ] [Publish a plugin manually](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html?from=IJPluginTemplate) for the first time.
-- [ ] Set the `MARKETPLACE_ID` in the above README badges. You can obtain it once the plugin is published to JetBrains Marketplace.
-- [ ] Set the [Plugin Signing](https://plugins.jetbrains.com/docs/intellij/plugin-signing.html?from=IJPluginTemplate) related [secrets](https://github.com/JetBrains/intellij-platform-plugin-template#environment-variables).
-- [ ] Set the [Deployment Token](https://plugins.jetbrains.com/docs/marketplace/plugin-upload.html?from=IJPluginTemplate).
-- [ ] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
+<!-- Plugin description -->
+A JetBrains IDE plugin that cherry-picks one or more commits selected in the **Git Log** onto
+**multiple target branches** in a single operation. Commits are applied in topological order, and
+the branch you started on is restored when the run finishes.
 
-This Fancy IntelliJ Platform Plugin is going to be your implementation of the brilliant ideas that you have.
+Feature parity with the reference `cherry_pick_batch.py` script: multiple targets, pull/push,
+allow-dirty, conflict strategy (abort / skip / theirs / ours), and dry-run.
+<!-- Plugin description end -->
 
-## Installation
+## Usage
 
-- Using the IDE built-in plugin system:
+1. Open the Git Log (**Git → Show Git Log**, or the Git tool window).
+2. Select one or more commits (use <kbd>Ctrl</kbd>/<kbd>Shift</kbd> for multi-select).
+3. Right-click → **Batch Cherry-Pick to Branches...**
+4. In the dialog, check the target branches and configure the options:
+   - **Remote** (default `origin`), **Pull**, **Push**
+   - **Allow dirty worktree** — skip the clean-worktree guard
+   - **Dry run** — preview the plan without changing anything
+   - **On conflict** — Abort / Skip / Theirs / Ours
+5. Click **OK**, confirm, and watch the background task. A result dialog and notification summarize
+   what was applied, skipped, or failed per branch.
 
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>Marketplace</kbd> > <kbd>Search for "BatchCherryPick-plugin"</kbd> >
-  <kbd>Install</kbd>
+## Behavior notes
 
-- Using JetBrains Marketplace:
+- Commits come **only** from the Git Log selection — there is no SHA/range text input.
+- All selected commits must belong to a single repository root; cross-root selections disable the action.
+- The current branch is hidden from the target list (cherry-picking onto it is a no-op).
+- `theirs`/`ours` auto-resolution is best-effort; complex conflicts may still fail.
+- A failed push does not roll back the local cherry-picks — it is flagged in the report.
 
-  Go to [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID) and install it by clicking the <kbd>Install to ...</kbd> button in case your IDE is running.
+## Building
 
-  You can also download the [latest release](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID/versions) from JetBrains Marketplace and install it manually using
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
-
-- Manually:
-
-  Download the [latest release](https://github.com/sandogeek/BatchCherryPick-plugin/releases/latest) and install it manually using
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
-
+- Build: `./gradlew build`
+- Run in a sandbox IDE: `./gradlew runIde`
+- Verify API compatibility: `./gradlew verifyPlugin`
 
 ---
-Plugin based on the [IntelliJ Platform Plugin Template][template].
-
-[template]: https://github.com/JetBrains/intellij-platform-plugin-template
-[docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation
+Plugin based on the [IntelliJ Platform Plugin Template](https://github.com/JetBrains/intellij-platform-plugin-template).
