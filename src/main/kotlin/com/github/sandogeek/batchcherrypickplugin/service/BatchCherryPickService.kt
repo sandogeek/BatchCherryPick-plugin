@@ -70,12 +70,18 @@ class BatchCherryPickService(
                 }
             }
         } finally {
-            // Always try to restore the branch the user started on.
-            if (!options.dryRun && originalBranch != null && originalBranch != helper.currentBranchName()) {
+            // Always try to restore the branch the user started on. Compare against the real HEAD
+            // read from git rather than the cached repository state, which stays stale because our
+            // raw checkouts never refresh GitRepository.
+            if (!options.dryRun && originalBranch != null && originalBranch != helper.currentBranchFromGit()) {
                 val restore = helper.checkout(originalBranch)
                 if (!restore.success()) {
                     thisLogger().warn("Failed to restore original branch $originalBranch: ${restore.errorOutputAsJoinedString}")
                 }
+            }
+            // Refresh the IDE's cached branch/state so it reflects wherever HEAD actually ended up.
+            if (!options.dryRun) {
+                helper.refreshRepositoryState()
             }
         }
         return BatchCherryPickReport(options.dryRun, branchResults)

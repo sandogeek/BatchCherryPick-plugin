@@ -52,6 +52,21 @@ class GitCherryPickHelper(
 
     fun currentBranchName(): String? = repository.currentBranch?.name
 
+    /**
+     * Reads the current branch directly from git, bypassing the possibly-stale cached repository
+     * state. Raw git commands run through [GitLineHandler] do not refresh [GitRepository], so
+     * [currentBranchName] can report the branch we started on even after several checkouts.
+     * Returns null on a detached HEAD or when the command fails.
+     */
+    fun currentBranchFromGit(): String? {
+        val result = run(GitCommand.REV_PARSE, "--abbrev-ref", "HEAD")
+        if (!result.success()) return null
+        return result.output.firstOrNull()?.trim()?.takeIf { it.isNotEmpty() && it != "HEAD" }
+    }
+
+    /** Refreshes IntelliJ's cached repository state so the IDE reflects branch changes made via raw git. */
+    fun refreshRepositoryState() = repository.update()
+
     fun checkout(branch: String): GitCommandResult = run(GitCommand.CHECKOUT, branch)
 
     fun fetch(remote: String): GitCommandResult = run(GitCommand.FETCH, remote)
