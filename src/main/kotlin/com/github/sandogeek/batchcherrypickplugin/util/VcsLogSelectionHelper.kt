@@ -4,8 +4,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.vcs.log.CommitId
-import com.intellij.vcs.log.VcsCommitMetadata
-import com.intellij.vcs.log.VcsLogCommitSelection
 import com.intellij.vcs.log.VcsLogDataKeys
 import git4idea.repo.GitRepository
 import git4idea.repo.GitRepositoryManager
@@ -42,11 +40,9 @@ object VcsLogSelectionHelper {
      */
     fun getSelectedCommits(event: AnActionEvent): SelectedCommits? {
         val project = event.project ?: return null
-        val selection = event.getData(VcsLogDataKeys.VCS_LOG_COMMIT_SELECTION)
+        val selection = event.getData(VcsLogDataKeys.VCS_LOG_COMMIT_SELECTION) ?: return null
 
-        val commitIds: List<CommitId> = selection?.commits
-            ?: event.getData(VcsLogDataKeys.VCS_LOG)?.selectedCommits
-            ?: return null
+        val commitIds: List<CommitId> = selection.commits
         if (commitIds.isEmpty()) return null
 
         // All commits must share a single repository root.
@@ -55,7 +51,7 @@ object VcsLogSelectionHelper {
         val root = roots.first()
         val repository = resolveRepository(project, root) ?: return null
 
-        val metadataByHash = collectMetadata(selection)
+        val metadataByHash = selection.cachedMetadata.associateBy { it.id.asString() }
         val commits = commitIds.map { id ->
             val hash = id.hash.asString()
             val meta = metadataByHash[hash]
@@ -71,11 +67,6 @@ object VcsLogSelectionHelper {
 
     /** True when the current selection is valid for the action (single root, at least one commit). */
     fun hasValidSelection(event: AnActionEvent): Boolean = getSelectedCommits(event) != null
-
-    private fun collectMetadata(selection: VcsLogCommitSelection?): Map<String, VcsCommitMetadata> {
-        val metadata = selection?.cachedMetadata ?: return emptyMap()
-        return metadata.associateBy { it.id.asString() }
-    }
 
     private fun resolveRepository(project: Project, root: VirtualFile): GitRepository? =
         GitRepositoryManager.getInstance(project).getRepositoryForRootQuick(root)
