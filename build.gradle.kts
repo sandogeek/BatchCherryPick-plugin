@@ -6,6 +6,15 @@ plugins {
     id("org.jetbrains.changelog")
 }
 
+intellijPlatform {
+    pluginConfiguration {
+        ideaVersion {
+            sinceBuild = "252"
+            untilBuild = provider { null }
+        }
+    }
+}
+
 dependencies {
     testImplementation("junit:junit:4.13.2")
 
